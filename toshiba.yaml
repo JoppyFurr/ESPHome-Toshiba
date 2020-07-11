@@ -4,6 +4,7 @@ esphome:
   board: d1_mini
   includes:
     - toshiba.h
+    - toshiba.cpp
 
 wifi:
   ssid: ----
@@ -32,16 +33,6 @@ remote_receiver:
   dump: all
 
 climate:
-  # Fake Coolix entry to trick ESPHome into adding the headers we need
-  - platform: coolix
-    name: do_not_use
+  - platform: toshiba
+    name: Lounge_Heatpump
   
-  # The actual heat-pump we want to use
-  - platform: custom
-    lambda: |-
-      auto my_toshiba = new ToshibaClimate ();
-      App.register_component (my_toshiba);
-      return {my_toshiba};
-  
-    climates:
-      - name: Lounge Heatpump

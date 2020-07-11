@@ -1,4 +1,4 @@
-#include "toshiba.h.h"
+#include "toshiba.h"
 
 #define TOSHIBA_HEADER_MARK         4380
 #define TOSHIBA_HEADER_SPACE        4370
@@ -72,15 +72,15 @@ namespace esphome {
             uint8_t mode;
             switch (this->mode)
             {
-                case climate::CLIMEATE_MODE_OFF:
+                case climate::CLIMATE_MODE_OFF:
                     mode = TOSHIBA_MODE_OFF;
                     break;
 
-                case climate::CLIMEATE_MODE_HEAT:
+                case climate::CLIMATE_MODE_HEAT:
                     mode = TOSHIBA_MODE_HEAT;
                     break;
 
-                case climate::CLIMEATE_MODE_COOL:
+                case climate::CLIMATE_MODE_COOL:
                     mode = TOSHIBA_MODE_COOL;
                     break;
 
@@ -89,7 +89,7 @@ namespace esphome {
                     mode = TOSHIBA_MODE_AUTO;
             }
 
-            message [6] |= mode | TOSHIBA_FAN_AUTO;
+            message [6] |= mode | TOSHIBA_FAN_SPEED_AUTO;
 
             /* Zero */
             message [7] = 0x00;
