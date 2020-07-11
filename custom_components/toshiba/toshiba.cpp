@@ -131,7 +131,7 @@ namespace esphome {
                 }
 
                 data->mark (TOSHIBA_BIT_MARK);
-                data->mark (TOSHIBA_GAP_SPACE);
+                data->space (TOSHIBA_GAP_SPACE);
             }
 
             transmit.perform ();
