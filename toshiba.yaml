@@ -1,0 +1,47 @@
+esphome:
+  name: lounge_8266
+  platform: ESP8266
+  board: d1_mini
+  includes:
+    - toshiba.h
+
+wifi:
+  ssid: ----
+  password: ----
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: ----
+
+ota:
+  password: ----
+  
+# Wemos IR controller shield  
+remote_transmitter:
+  pin: D3
+  # Infrared remotes use a 50% carrier signal
+  carrier_duty_percent: 50%
+
+remote_receiver:
+  pin:
+    number: D6
+    inverted: True
+  dump: all
+
+climate:
+  # Fake Coolix entry to trick ESPHome into adding the headers we need
+  - platform: coolix
+    name: do_not_use
+  
+  # The actual heat-pump we want to use
+  - platform: custom
+    lambda: |-
+      auto my_toshiba = new ToshibaClimate ();
+      App.register_component (my_toshiba);
+      return {my_toshiba};
+  
+    climates:
+      - name: Lounge Heatpump
