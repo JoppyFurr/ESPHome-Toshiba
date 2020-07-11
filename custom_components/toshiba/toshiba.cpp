@@ -139,7 +139,90 @@ namespace esphome {
 
         bool ToshibaClimate::on_receive (remote_base::RemoteReceiveData data)
         {
-            /* TODO */
+            uint8_t message [16] = { 0 };
+            uint8_t message_length = 4;
+
+            /* Validate header */
+            if (!data.expect_item (TOSHIBA_HEADER_MARK, TOSHIBA_HEADER_SPACE))
+            {
+                return false;
+            }
+
+            /* Decode bytes */
+            for (uint8_t byte = 0; byte < message_length; byte++)
+            {
+                for (uint8_t bit = 0; bit < 8; bit++)
+                {
+                    if (data.expect_item (TOSHIBA_BIT_MARK, TOSHIBA_ONE_SPACE))
+                    {
+                        message [byte] |= 1 << (7 - bit);
+                    }
+                    else if (data.expect_item (TOSHIBA_BIT_MARK, TOSHIBA_ZERO_SPACE))
+                    {
+                        /* Bit is already clear */
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                /* Update length */
+                if (byte == 3)
+                {
+                    /* Validate the first checksum before trusting the length field */
+                    if ((message [0] ^ message [1] ^ message [2]) != message [3])
+                    {
+                        return false;
+                    }
+                    message_length = message [2] + 6;
+                }
+            }
+
+            /* Validate the second checksum before trusting any more of the message */
+            uint8_t checksum = 0;
+            for (uint8_t i = 4; i < message_length - 1; i++)
+            {
+                checksum ^= message [i];
+            }
+
+            if (checksum != message [message_length - 1])
+            {
+                return false;
+            }
+
+            /* Check if this is a short swing/fix message */
+            if (message [4] & TOSHIBA_COMMAND_MOTION)
+            {
+                /* Not supported yet */
+                return false;
+            }
+
+            /* Get the mode. */
+            switch (message [6] & 0x0f)
+            {
+                case TOSHIBA_MODE_OFF:
+                    this->mode = climate::CLIMATE_MODE_OFF;
+                    break;
+
+                case TOSHIBA_MODE_HEAT:
+                    this->mode = climate::CLIMATE_MODE_HEAT;
+                    break;
+
+                case TOSHIBA_MODE_COOL:
+                    this->mode = climate::CLIMATE_MODE_COOL;
+                    break;
+
+                case TOSHIBA_MODE_AUTO:
+                default:
+                    /* Note: Dry and Fan-only modes are reported as Auto, as they are not supported yet */
+                    this->mode = climate::CLIMATE_MODE_AUTO;
+            }
+
+            /* Get the target temperature */
+            this->target_temperature = (message [5] >> 4) + 17;
+
+            this->publish_state ();
             return true;
         }
     }
